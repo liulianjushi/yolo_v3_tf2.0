@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+from yolo.decode import Decode
+
 
 class DarkNetConv2D(tf.keras.layers.Layer):
     def __init__(self, filters, kernel_size, strides):
@@ -95,6 +97,7 @@ class YOLOV3(tf.keras.Model):
         self.tail_2 = YOLOTail(in_channels=256, out_channels=out_channels)
         self.upsampling_2 = self._make_upsampling(num_filter=128)
         self.tail_3 = YOLOTail(in_channels=128, out_channels=out_channels)
+        self.decode = Decode()
 
     def _make_upsampling(self, num_filter):
         layer = tf.keras.Sequential()
@@ -111,6 +114,12 @@ class YOLOV3(tf.keras.Model):
         branch_2 = self.upsampling_2(branch_2, training=training)
         x_3 = tf.keras.layers.concatenate([branch_2, x_3])
         stem_3, _ = self.tail_3(x_3, training=training)
-
+        if training is False:
+            return self.decode([stem_1, stem_2, stem_3])
         return [stem_1, stem_2, stem_3]
 
+
+if __name__ == '__main__':
+    net = YOLOV3(out_channels=3 * (80 + 5))
+    net.build(input_shape=(None, 416, 416, 3))
+    net.summary()
