@@ -5,7 +5,7 @@ from yolo.anchor import get_coco_anchors
 from yolo.nms import NMS
 
 
-class Decode(tf.keras.Model):
+class Decode(tf.keras.layers.Layer):
     def __init__(self):
         super(Decode, self).__init__()
         self.nms = NMS()
@@ -58,7 +58,6 @@ class Decode(tf.keras.Model):
         else:
             return box_xy, box_wh, confidence, class_prob
 
-    @tf.function
     def __yolo_post_processing(self, feature, scale_type):
         box_xy, box_wh, confidence, class_prob = self.__bounding_box_predict(feature_map=feature,
                                                                              scale_type=scale_type,
